@@ -78,16 +78,6 @@ void app_main(void)
     
     xTaskCreate(get_sensor_data, "get_sensor_data", 1024, (void*) &s_context, tskIDLE_PRIORITY, NULL);
     xTaskCreate(filter_data, "filter_data", 1024, (void*) &f_context, tskIDLE_PRIORITY, NULL);
-
-    /*
-    while(1) {
-        uint8_t buffer[2] = {0};
-        ESP_ERROR_CHECK(i2c_master_receive(dev_handle, buffer, sizeof(buffer), 1000));
-        uint16_t temp = buffer[0] << 8 | buffer[1]; 
-        printf("Temp: %.1f\n", temp, (float)temp / 10);
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
-    }
-    */
 }   
 
 void get_sensor_data(void* param) {
