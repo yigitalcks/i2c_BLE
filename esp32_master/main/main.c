@@ -10,9 +10,13 @@
 
 #define SCL_IO_PIN CONFIG_I2C_MASTER_SCL
 #define SDA_IO_PIN CONFIG_I2C_MASTER_SDA
-#define MASTER_FREQUENCY 100000
-#define SLAVE_ADRESS_IMU 0x68
-#define SLAVE_ADRESS_TEMPERATURE 0x55 // TODO
+#define MASTER_FREQUENCY CONFIG_I2C_MASTER_FREQUENCY
+#define SLAVE_ADRESS_TEMPERATURE 0x55
+
+#define MPU6050_ADDR 0x69            // MPU6050 I2C adresi
+#define MPU6050_WHO_AM_I 0x75        // "Who am I" register adresi
+#define MPU6050_PWR_MGMT_1 0x6B      // Güç yönetimi register adresi
+#define MPU6050_ACCEL_XOUT_H 0x3B    // İvmeölçer verilerinin başlangıç adresi
 
 #define WINDOW_SIZE 3
 
@@ -63,10 +67,9 @@ void debug_i2c(Borda_package borda) {
  * @brief MPU6050 sensörünü başlatır (uyandırır).
  */
 void mpu_init(SensorConxtext* ctx) {
-    uint8_t reg1 = 0x6B;
-    uint8_t reg2 = 0x00;
-    ESP_ERROR_CHECK(i2c_master_transmit(ctx->dev_handle_imu, &reg1, 1, 1000));
-    ESP_ERROR_CHECK(i2c_master_transmit(ctx->dev_handle_imu, &reg2, 1, 1000));
+    uint8_t reg_data[] = {MPU6050_PWR_MGMT_1, 0x00};
+
+    ESP_ERROR_CHECK(i2c_master_transmit(ctx->dev_handle_imu, reg_data, sizeof(reg_data), -1));
 }
 
 /**
@@ -74,9 +77,8 @@ void mpu_init(SensorConxtext* ctx) {
  */
 void read_sensor_data(void* pvParameters) {
     SensorConxtext* s_context = (SensorConxtext*) pvParameters;
-    
-    uint8_t imu_reg = 0x3B;
 
+    uint8_t reg_addr = MPU6050_ACCEL_XOUT_H;
     while(1) {
         uint8_t temperature_buffer[2] = {0};
         uint8_t imu_buffer[6] = {0}; //acc_x, acc_y and acc_z = 6 bytes
@@ -84,10 +86,9 @@ void read_sensor_data(void* pvParameters) {
         // Sıcaklık okuma (arduino)
         ESP_ERROR_CHECK(i2c_master_receive(s_context->dev_handle_temperature, temperature_buffer, sizeof(temperature_buffer), 1000));
         uint16_t temperature = temperature_buffer[0] << 8 | temperature_buffer[1]; 
-
+        
         // İvmeölçer okuma (MPU6050, acc_x, acc_y, acc_z)
-        ESP_ERROR_CHECK(i2c_master_transmit(s_context->dev_handle_imu, &imu_reg, 1, 1000));
-        ESP_ERROR_CHECK(i2c_master_receive(s_context->dev_handle_imu, imu_buffer, sizeof(imu_buffer), 1000));
+        ESP_ERROR_CHECK(i2c_master_transmit_receive(s_context->dev_handle_imu, &reg_addr, 1, imu_buffer, sizeof(imu_buffer), 1000));
 
         uint16_t acc_x = (imu_buffer[0] << 8) | imu_buffer[1];
         uint16_t acc_y = (imu_buffer[2] << 8) | imu_buffer[3];
@@ -190,7 +191,7 @@ void app_main(void)
     //i2c slave MPU6050
     i2c_device_config_t dev_cfg_imu = {
         .dev_addr_length = I2C_ADDR_BIT_LEN_7,
-        .device_address = SLAVE_ADRESS_IMU,
+        .device_address = MPU6050_ADDR,
         .scl_speed_hz = MASTER_FREQUENCY
     };
 
