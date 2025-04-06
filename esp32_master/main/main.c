@@ -13,8 +13,7 @@
 #define MASTER_FREQUENCY CONFIG_I2C_MASTER_FREQUENCY
 #define SLAVE_ADRESS_TEMPERATURE 0x55
 
-#define MPU6050_ADDR 0x69            // MPU6050 I2C adresi
-#define MPU6050_WHO_AM_I 0x75        // "Who am I" register adresi
+#define MPU6050_ADDR 0x68            // MPU6050 I2C adresi
 #define MPU6050_PWR_MGMT_1 0x6B      // Güç yönetimi register adresi
 #define MPU6050_ACCEL_XOUT_H 0x3B    // İvmeölçer verilerinin başlangıç adresi
 
