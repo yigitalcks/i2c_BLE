@@ -6,5 +6,5 @@
 
 ### MPU6050 Registers
 
-![Reset register](0x6B.png)
-![Acc registers](0x6B.png)
+![Reset register](0x6B.webp)
+![Acc registers](0x3B.webp)
